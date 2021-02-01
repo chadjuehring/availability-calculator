@@ -1,4 +1,6 @@
-import isBefore from 'date-fns/isBefore'
+import isBefore from 'date-fns/isBefore';
+import addMinutes from 'date-fns/addMinutes';
+import differenceInMinutes from 'date-fns/differenceInMinutes';
 
 function atLeastOneTrue(array) {
     for (let i = 0; i < array.length; i++) {
@@ -18,7 +20,7 @@ function allAreFalse(array) {
     return true;
 }
 
-export function getAvailableFromFormattedArray(array, countOfAvailable, countOfBlocks, timeMinimum) {
+export function getAvailableFromTimeline(array, countOfAvailable, countOfBlocks, timeMinimum) {
     const activeAvailables = new Array(countOfAvailable).fill(false)
     const activeBlocks = new Array(countOfBlocks).fill(false)
 
@@ -30,9 +32,6 @@ export function getAvailableFromFormattedArray(array, countOfAvailable, countOfB
     let allBlocksWereInactive = true;
 
     for (let i = 0; i < array.length; i++) {
-        // const atLeastOneActiveWasAvailable = atLeastOneTrue(activeAvailables);
-        // const allBlocksWereInactive = allAreFalse(activeBlocks);
-
         const nextLog = array[i];
 
         const {isAvailable, time, index, availableBlock} = nextLog;
@@ -59,7 +58,7 @@ export function getAvailableFromFormattedArray(array, countOfAvailable, countOfB
             atLeastOneActiveWasAvailable
             && !atLeastOneActiveRemainsAvailable
         ) {
-            result.push({ startTime, endTime: time });
+            result.push({startTime, endTime: time});
             startTime = null;
         }
 
@@ -69,7 +68,7 @@ export function getAvailableFromFormattedArray(array, countOfAvailable, countOfB
             && allBlocksWereInactive
             && !allBlocksAreInactive
         ) {
-            result.push({ startTime, endTime: time });
+            result.push({startTime, endTime: time});
             startTime = null;
         }
 
@@ -89,8 +88,35 @@ export function getAvailableFromFormattedArray(array, countOfAvailable, countOfB
     return result;
 }
 
-export function getAvailable(state, timeSlotMinutes) {
-    if (!state.timeline || !state.availabilities || !state.blocked) { return null; }
+export function getAvailable(state, timeSlotMinutes = 30, startIncrementSlotsMinutes = 30) {
+    if (!state.timeline || !state.availabilities || !state.blocked) {
+        return null;
+    }
 
-    return getAvailableFromFormattedArray(state.timeline, state.availabilities.length, state.blocked.length);
+    const result = [];
+
+    const candidateSegments = getAvailableFromTimeline(state.timeline, state.availabilities.length, state.blocked.length);
+
+    const filtered = candidateSegments.filter(slot => {
+        const {startTime, endTime} = slot;
+        return differenceInMinutes(endTime, startTime) >= timeSlotMinutes;
+    });
+
+    filtered.forEach(slot => {
+        const {startTime, endTime} = slot;
+
+        let nextStartTime = addMinutes(startTime, 0);
+        let testEndTime = addMinutes(nextStartTime, timeSlotMinutes);
+
+        // if there is still enough room between the start and end, then lets add a time slot
+        while (isBefore(testEndTime, addMinutes(endTime, 0.25))) {
+            result.push({startTime: nextStartTime, endTime: testEndTime})
+            nextStartTime = addMinutes(nextStartTime, startIncrementSlotsMinutes);
+            testEndTime = addMinutes(nextStartTime, timeSlotMinutes);
+        }
+    })
+
+    console.log({candidateSegments, filtered, result, timeSlotMinutes})
+
+    return result;
 }

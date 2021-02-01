@@ -1,4 +1,4 @@
-import {getAvailableFromFormattedArray} from "./selectors";
+import {getAvailableFromTimeline} from "./selectors";
 
 const testArray =
     [
@@ -43,8 +43,7 @@ const testArray =
 
 describe('getAvailableFromFormattedArray', () => {
     it('creates time slots for a series of flattened date flags', () => {
-        const result = getAvailableFromFormattedArray(testArray, 1, 2)
-        console.log({ result });
+        const result = getAvailableFromTimeline(testArray, 1, 2)
     })
 
 })

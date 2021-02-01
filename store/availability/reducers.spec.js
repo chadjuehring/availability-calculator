@@ -44,9 +44,8 @@ describe('create unified timeline', () => {
             { startDate: today10AM, endDate: today1030AM },
             { startDate: today930AM, endDate: today10AM },
         ];
-        const result = createUnifiedTimeline(testAvailability, testBlock);
 
-        console.log({ result })
+        const result = createUnifiedTimeline(testAvailability, testBlock);
 
         it('returns an array of the expected length ', () => {
             expect(result.length).toBe(6);
