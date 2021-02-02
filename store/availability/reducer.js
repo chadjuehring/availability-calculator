@@ -25,7 +25,7 @@ export function reducer(prevState = getInitialState(), action) {
             return {
                 ...prevState,
                 blocked: nextBlocked,
-                timeline: createUnifiedTimeline(prevState.availabilities, prevState.blocked),
+                timeline: createUnifiedTimeline(prevState.availabilities, nextBlocked),
             }
         default:
             return prevState;

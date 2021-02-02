@@ -1,6 +1,7 @@
 import isBefore from 'date-fns/isBefore';
 import addMinutes from 'date-fns/addMinutes';
 import differenceInMinutes from 'date-fns/differenceInMinutes';
+import {generateSegmentsForTimeBlock} from "./utility/generate-segments-for-timeblock";
 
 function atLeastOneTrue(array) {
     for (let i = 0; i < array.length; i++) {
@@ -28,6 +29,7 @@ export function getAvailableFromTimeline(array, countOfAvailable, countOfBlocks,
 
     let startTime;
 
+    // initial state is no availability is declared and no blocks yet applied
     let atLeastOneActiveWasAvailable = false;
     let allBlocksWereInactive = true;
 
@@ -44,7 +46,6 @@ export function getAvailableFromTimeline(array, countOfAvailable, countOfBlocks,
 
         const atLeastOneActiveRemainsAvailable = atLeastOneTrue(activeAvailables);
         const allBlocksAreInactive = allAreFalse(activeBlocks);
-
 
         if (
             !atLeastOneActiveWasAvailable
@@ -88,35 +89,16 @@ export function getAvailableFromTimeline(array, countOfAvailable, countOfBlocks,
     return result;
 }
 
-export function getAvailable(state, timeSlotMinutes = 30, startIncrementSlotsMinutes = 30) {
+export function getAvailable(state, timeSlotMinutes, startIncrementSlotsMinutes) {
     if (!state.timeline || !state.availabilities || !state.blocked) {
         return null;
     }
 
-    const result = [];
-
     const candidateSegments = getAvailableFromTimeline(state.timeline, state.availabilities.length, state.blocked.length);
 
-    const filtered = candidateSegments.filter(slot => {
-        const {startTime, endTime} = slot;
-        return differenceInMinutes(endTime, startTime) >= timeSlotMinutes;
-    });
+    const filtered = candidateSegments .filter(({ endTime, startTime }) => differenceInMinutes(endTime, startTime) >= timeSlotMinutes);
 
-    filtered.forEach(slot => {
-        const {startTime, endTime} = slot;
-
-        let nextStartTime = addMinutes(startTime, 0);
-        let testEndTime = addMinutes(nextStartTime, timeSlotMinutes);
-
-        // if there is still enough room between the start and end, then lets add a time slot
-        while (isBefore(testEndTime, addMinutes(endTime, 0.25))) {
-            result.push({startTime: nextStartTime, endTime: testEndTime})
-            nextStartTime = addMinutes(nextStartTime, startIncrementSlotsMinutes);
-            testEndTime = addMinutes(nextStartTime, timeSlotMinutes);
-        }
+    return filtered.map(item => generateSegmentsForTimeBlock(item, timeSlotMinutes, startIncrementSlotsMinutes)).reduce((acc, next) => {
+        return acc.concat(...next);
     })
-
-    console.log({candidateSegments, filtered, result, timeSlotMinutes})
-
-    return result;
 }
