@@ -11,7 +11,6 @@ const store = createStore(reducer, getInitialState());
 
 export default store;
 
-
 // OOP interface for those that might want it
 export class AvailabilityCalculator {
     constructor() {
