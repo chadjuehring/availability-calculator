@@ -1,3 +1,4 @@
+import parseIso from 'date-fns/parseISO';
 import {createStore} from "redux";
 import {getInitialState} from "./initial-state";
 import {reducer} from "./reducer.js";
@@ -18,11 +19,11 @@ export class AvailabilityCalculator {
     }
 
     addAvailability(startDate, endDate) {
-        this.store.dispatch(createAvailabilitySlot(startDate, endDate));
+        this.store.dispatch(createAvailabilitySlot(parseIso(startDate), parseIso(endDate)));
     }
 
     addBlock(startDate, endDate) {
-        this.store.dispatch(createAvailabilityBlock(startDate, endDate));
+        this.store.dispatch(createAvailabilityBlock(parseIso(startDate), parseIso(endDate)));
     }
 
     getAvailability(timeSlotLengthMinutes, incrementsOnTheHour) {

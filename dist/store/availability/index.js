@@ -8,6 +8,8 @@ var _exportNames = {
 };
 exports.AvailabilityCalculator = exports.default = void 0;
 
+var _parseISO = _interopRequireDefault(require("date-fns/parseISO"));
+
 var _redux = require("redux");
 
 var _initialState = require("./initial-state");
@@ -45,6 +47,9 @@ Object.keys(_selectors2).forEach(function (key) {
     }
   });
 });
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 const store = (0, _redux.createStore)(_reducer.reducer, (0, _initialState.getInitialState)());
 var _default = store; // OOP interface for those that might want it
 
@@ -56,11 +61,11 @@ class AvailabilityCalculator {
   }
 
   addAvailability(startDate, endDate) {
-    this.store.dispatch((0, _actions.createAvailabilitySlot)(startDate, endDate));
+    this.store.dispatch((0, _actions.createAvailabilitySlot)((0, _parseISO.default)(startDate), (0, _parseISO.default)(endDate)));
   }
 
   addBlock(startDate, endDate) {
-    this.store.dispatch((0, _actions.createAvailabilityBlock)(startDate, endDate));
+    this.store.dispatch((0, _actions.createAvailabilityBlock)((0, _parseISO.default)(startDate), (0, _parseISO.default)(endDate)));
   }
 
   getAvailability(timeSlotLengthMinutes, incrementsOnTheHour) {
